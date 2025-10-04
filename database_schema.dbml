@@ -1,0 +1,188 @@
+// Database Schema for Product Management System
+// Copy this content to https://dbdiagram.io/ to visualize the database
+
+Project product_management {
+  database_type: 'MongoDB'
+  Note: '''
+    # Product Management System Database Schema
+    
+    This database schema is designed for a Node.js application 
+    that manages products with CRUD operations, search, pagination, and filtering.
+    
+    ## Features:
+    - Product CRUD operations
+    - Search by name (case-insensitive)
+    - Filter by price range
+    - Pagination support
+    - Timestamps for tracking
+  '''
+}
+
+// Products Collection
+Table products {
+  _id ObjectId [pk, increment, note: 'Primary key - MongoDB ObjectId']
+  name string [not null, note: 'Product name - required field']
+  price number [not null, note: 'Product price - required field, must be >= 0']
+  description string [null, note: 'Product description - optional field']
+  createdAt datetime [default: `new Date()`, note: 'Creation timestamp']
+  updatedAt datetime [default: `new Date()`, note: 'Last update timestamp']
+  
+  Note: '''
+    ## Products Collection
+    
+    Stores product information with the following constraints:
+    - name: Required, max 100 characters, trimmed
+    - price: Required, must be >= 0
+    - description: Optional, max 500 characters, trimmed
+    - Timestamps are automatically managed by Mongoose middleware
+    
+    ## Indexes:
+    - _id: Primary key (automatic)
+    - name: Text index for search functionality
+    - price: Index for range queries
+    - createdAt: Index for sorting
+  '''
+}
+
+// Indexes for better performance
+TableIndex products_name {
+  table: products
+  columns: [name]
+  type: text
+  note: 'Text index for case-insensitive name search'
+}
+
+TableIndex products_price {
+  table: products
+  columns: [price]
+  type: btree
+  note: 'B-tree index for price range queries'
+}
+
+TableIndex products_createdAt {
+  table: products
+  columns: [createdAt]
+  type: btree
+  note: 'B-tree index for sorting by creation date'
+}
+
+// API Endpoints Documentation
+Table api_endpoints {
+  method string [note: 'HTTP Method']
+  endpoint string [note: 'API Endpoint']
+  description string [note: 'Endpoint description']
+  parameters string [note: 'Query parameters']
+  
+  Note: '''
+    ## API Endpoints Documentation
+    
+    ### Product Management API
+    
+    1. GET /api/products
+       - Get all products with pagination, search, and filtering
+       - Parameters: _page, _limit, name, minPrice, maxPrice
+       
+    2. GET /api/products/:id
+       - Get product by ID
+       - Parameters: id (MongoDB ObjectId)
+       
+    3. POST /api/products
+       - Create new product
+       - Body: { name, price, description }
+       
+    4. PUT /api/products/:id
+       - Update product by ID
+       - Body: { name, price, description }
+       
+    5. DELETE /api/products/:id
+       - Delete product by ID
+       - Parameters: id (MongoDB ObjectId)
+  '''
+}
+
+// Sample data for testing
+Table sample_products {
+  _id ObjectId
+  name string
+  price number
+  description string
+  createdAt datetime
+  updatedAt datetime
+  
+  Note: '''
+    ## Sample Data
+    
+    Example products for testing:
+    
+    1. {
+         _id: ObjectId("64a1b2c3d4e5f6789abcdef0"),
+         name: "Laptop Dell XPS 13",
+         price: 15000000,
+         description: "High-performance laptop for professionals",
+         createdAt: ISODate("2023-07-01T10:00:00.000Z"),
+         updatedAt: ISODate("2023-07-01T10:00:00.000Z")
+       }
+       
+    2. {
+         _id: ObjectId("64a1b2c3d4e5f6789abcdef1"),
+         name: "iPhone 15 Pro",
+         price: 25000000,
+         description: "Latest iPhone with advanced camera system",
+         createdAt: ISODate("2023-07-01T11:00:00.000Z"),
+         updatedAt: ISODate("2023-07-01T11:00:00.000Z")
+       }
+       
+    3. {
+         _id: ObjectId("64a1b2c3d4e5f6789abcdef2"),
+         name: "Samsung Galaxy S24",
+         price: 20000000,
+         description: "Android flagship smartphone",
+         createdAt: ISODate("2023-07-01T12:00:00.000Z"),
+         updatedAt: ISODate("2023-07-01T12:00:00.000Z")
+       }
+  '''
+}
+
+// Query Examples
+Table query_examples {
+  query_type string [note: 'Type of query']
+  example string [note: 'Example query']
+  description string [note: 'Query description']
+  
+  Note: '''
+    ## Common Query Examples
+    
+    ### 1. Get all products with pagination
+    ```javascript
+    Product.find({})
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+    ```
+    
+    ### 2. Search products by name
+    ```javascript
+    Product.find({ 
+      name: { $regex: searchTerm, $options: 'i' } 
+    })
+    ```
+    
+    ### 3. Filter products by price range
+    ```javascript
+    Product.find({
+      price: { $gte: minPrice, $lte: maxPrice }
+    })
+    ```
+    
+    ### 4. Combined search and filter
+    ```javascript
+    Product.find({
+      name: { $regex: name, $options: 'i' },
+      price: { $gte: minPrice, $lte: maxPrice }
+    })
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    ```
+  '''
+}
